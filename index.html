@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Dano RPG</title>
+    
+    <!-- CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        input, select, button {
+            margin: 10px 0;
+            display: block;
+        }
+
+        .personagem {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .vida {
+            display: flex;
+            justify-content: space-between;
+            width: 200px;
+        }
+
+        .botao-remover {
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Calculadora de Dano para RPG</h1>
+    
+    <div>
+        <label for="nomePersonagem">Nome do Personagem:</label>
+        <input type="text" id="nomePersonagem">
+        
+        <label for="vidaMaxima">Vida Máxima:</label>
+        <input type="number" id="vidaMaxima">
+
+        <label for="vidaAtual">Vida Atual:</label>
+        <input type="number" id="vidaAtual">
+        
+        <button onclick="adicionarPersonagem()">Adicionar Personagem</button>
+    </div>
+
+    <div id="personagens">
+        <!-- Lista de personagens adicionados será exibida aqui -->
+    </div>
+
+    <div id="calculoDano" style="display: none;">
+        <h2>Calcular Dano</h2>
+        <label for="danoRecebido">Dano Recebido:</label>
+        <input type="number" id="danoRecebido">
+        
+        <label for="tipoDano">Tipo de Dano:</label>
+        <select id="tipoDano">
+            <option value="cortante">Cortante</option>
+            <option value="perfuração">Perfuração</option>
+            <!-- Adicionar mais tipos de dano aqui -->
+        </select>
+
+        <label for="rdGeral">RD Geral:</label>
+        <input type="number" id="rdGeral">
+
+        <label for="rdEspecifica">RD Específica:</label>
+        <input type="number" id="rdEspecifica">
+
+        <label for="quantidadeAtaques">Quantidade de Ataques:</label>
+        <input type="number" id="quantidadeAtaques">
+
+        <button onclick="calcularDano()">Calcular</button>
+
+        <div id="resultadoDano">
+            <!-- O resultado do cálculo do dano será exibido aqui -->
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        let personagens = [];
+
+        function adicionarPersonagem() {
+            const nome = document.getElementById("nomePersonagem").value;
+            const vidaMaxima = parseInt(document.getElementById("vidaMaxima").value);
+            const vidaAtual = parseInt(document.getElementById("vidaAtual").value);
+            
+            if (nome && vidaMaxima && vidaAtual) {
+                personagens.push({ nome, vidaMaxima, vidaAtual });
+                exibirPersonagens();
+            }
+        }
+
+        function exibirPersonagens() {
+            const personagensDiv = document.getElementById("personagens");
+            personagensDiv.innerHTML = "";
+
+            personagens.forEach((personagem, index) => {
+                personagensDiv.innerHTML += `
+                    <div class="personagem">
+                        <strong>${personagem.nome}</strong>
+                        <div class="vida">
+                            <span>Vida Máx: ${personagem.vidaMaxima}</span>
+                            <span>Vida Atual: ${personagem.vidaAtual}</span>
+                        </div>
+                        <button onclick="abrirCalculoDano(${index})">Calcular Dano</button>
+                        <button class="botao-remover" onclick="removerPersonagem(${index})">Remover</button>
+                    </div>
+                `;
+            });
+        }
+
+        function abrirCalculoDano(index) {
+            document.getElementById("calculoDano").style.display = "block";
+            document.getElementById("calculoDano").dataset.index = index;
+        }
+
+        function removerPersonagem(index) {
+            personagens.splice(index, 1);
+            exibirPersonagens();
+        }
+
+        function calcularDano() {
+            const danoRecebido = parseInt(document.getElementById("danoRecebido").value);
+            const rdGeral = parseInt(document.getElementById("rdGeral").value) || 0;
+            const rdEspecifica = parseInt(document.getElementById("rdEspecifica").value) || 0;
+            const quantidadeAtaques = parseInt(document.getElementById("quantidadeAtaques").value) || 1;
+            
+            const index = document.getElementById("calculoDano").dataset.index;
+            const personagem = personagens[index];
+
+            const danoPorAtaque = danoRecebido / quantidadeAtaques;
+            const danoReduzido = (danoPorAtaque - rdGeral - rdEspecifica) * quantidadeAtaques;
+            const danoFinal = Math.max(Math.floor(danoReduzido), 0); // Não pode ser negativo, arredondar para inteiro
+
+            personagem.vidaAtual -= danoFinal;
+            personagem.vidaAtual = Math.max(Math.floor(personagem.vidaAtual), 0); // Evitar que fique negativo
+
+            document.getElementById("resultadoDano").innerText = 
+                `${personagem.nome} tomou ${danoFinal} de dano. Vida atual: ${personagem.vidaAtual}/${personagem.vidaMaxima}`;
+
+            exibirPersonagens();
+        }
+    </script>
+</body>
+</html>
